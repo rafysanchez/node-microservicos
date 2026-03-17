@@ -4,19 +4,34 @@ import { motion } from 'motion/react';
 
 export default function App() {
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
+  const [catalogStatus, setCatalogStatus] = useState<string | null>(null);
+  const [notificationStatus, setNotificationStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const createOrder = async () => {
     setLoading(true);
+    setOrderStatus(null);
+    setCatalogStatus(null);
+    setNotificationStatus(null);
+    
     try {
-      // In a real microservices environment, this would call the Order Service
-      // For this learning demo, we simulate the UI interaction
       console.log('[UI] Triggering order creation...');
       
       // Simulating the API call to Order Service
       setTimeout(() => {
-        setOrderStatus('Order Created! Check console for RabbitMQ logs.');
+        setOrderStatus('Pedido Criado! Enviando para o RabbitMQ...');
         setLoading(false);
+
+        // Simulating Catalog Service receiving the event
+        setTimeout(() => {
+          setCatalogStatus('Pedido recebido');
+        }, 800);
+
+        // Simulating Notification Service receiving the event
+        setTimeout(() => {
+          setNotificationStatus('Pedido recebido');
+        }, 1200);
+
       }, 1000);
     } catch (error) {
       console.error('Error creating order:', error);
@@ -61,7 +76,7 @@ export default function App() {
           </div>
 
           {/* Catalog Service Card */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 opacity-80">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
             <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4 text-emerald-600">
               <Package size={24} />
             </div>
@@ -69,10 +84,19 @@ export default function App() {
             <p className="text-sm text-slate-500">
               Escuta eventos de pedido e atualiza o estoque local.
             </p>
+            {catalogStatus && (
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="mt-4 py-1 px-3 bg-emerald-500 text-white text-xs font-bold rounded-full inline-block"
+              >
+                {catalogStatus}
+              </motion.div>
+            )}
           </div>
 
           {/* Notification Service Card */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 opacity-80">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
             <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4 text-amber-600">
               <Bell size={24} />
             </div>
@@ -80,6 +104,15 @@ export default function App() {
             <p className="text-sm text-slate-500">
               Escuta eventos e envia alertas/emails aos clientes.
             </p>
+            {notificationStatus && (
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="mt-4 py-1 px-3 bg-amber-500 text-white text-xs font-bold rounded-full inline-block"
+              >
+                {notificationStatus}
+              </motion.div>
+            )}
           </div>
         </div>
 
