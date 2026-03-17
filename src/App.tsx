@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ShoppingCart, Package, Bell, Send, Info, Activity } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Package, Bell, Send, Info, Activity, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function App() {
@@ -7,6 +7,20 @@ export default function App() {
   const [catalogStatus, setCatalogStatus] = useState<string | null>(null);
   const [notificationStatus, setNotificationStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [infraStatus, setInfraStatus] = useState<{ rabbitmq: string; message: string } | null>(null);
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+        setInfraStatus(data);
+      } catch (error) {
+        console.error('Error checking health:', error);
+      }
+    };
+    checkHealth();
+  }, []);
 
   const createOrder = async () => {
     setLoading(true);
@@ -17,22 +31,28 @@ export default function App() {
     try {
       console.log('[UI] Triggering order creation...');
       
-      // Simulating the API call to Order Service
+      // Real API call to the server
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: '123', quantity: 1, customerEmail: 'test@example.com' })
+      });
+      
+      if (!response.ok) throw new Error('Failed to create order');
+      
+      setOrderStatus('Pedido Criado! Enviando para o RabbitMQ...');
+      setLoading(false);
+
+      // Simulating Catalog Service receiving the event
       setTimeout(() => {
-        setOrderStatus('Pedido Criado! Enviando para o RabbitMQ...');
-        setLoading(false);
+        setCatalogStatus('Pedido recebido');
+      }, 800);
 
-        // Simulating Catalog Service receiving the event
-        setTimeout(() => {
-          setCatalogStatus('Pedido recebido');
-        }, 800);
+      // Simulating Notification Service receiving the event
+      setTimeout(() => {
+        setNotificationStatus('Pedido recebido');
+      }, 1200);
 
-        // Simulating Notification Service receiving the event
-        setTimeout(() => {
-          setNotificationStatus('Pedido recebido');
-        }, 1200);
-
-      }, 1000);
     } catch (error) {
       console.error('Error creating order:', error);
       setLoading(false);
@@ -42,6 +62,21 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 p-8">
       <div className="max-w-4xl mx-auto">
+        {/* Infra Status Bar */}
+        {infraStatus && (
+          <div className={`mb-8 p-3 rounded-xl flex items-center justify-between text-xs font-medium border ${
+            infraStatus.rabbitmq === 'connected' 
+              ? 'bg-emerald-50 border-emerald-100 text-emerald-700' 
+              : 'bg-amber-50 border-amber-100 text-amber-700'
+          }`}>
+            <div className="flex items-center gap-2">
+              {infraStatus.rabbitmq === 'connected' ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
+              <span>RabbitMQ: {infraStatus.rabbitmq === 'connected' ? 'Conectado' : 'Desconectado (Modo Simulação)'}</span>
+            </div>
+            <span className="opacity-70">{infraStatus.message}</span>
+          </div>
+        )}
+
         <header className="mb-12 text-center">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
