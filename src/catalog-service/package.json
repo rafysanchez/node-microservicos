@@ -1,0 +1,13 @@
+{
+  "name": "catalog-service",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "amqplib": "^0.10.5"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.5",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.2"
+  }
+}

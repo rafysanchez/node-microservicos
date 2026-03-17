@@ -1,0 +1,43 @@
+services:
+  # RabbitMQ Broker (Isolated Container)
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_broker
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Business Microservices
+  order-service:
+    build: ./src/order-service
+    container_name: order_service
+    ports:
+      - "3000:3000"
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  catalog-service:
+    build: ./src/catalog-service
+    container_name: catalog_service
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  notification-service:
+    build: ./src/notification-service
+    container_name: notification_service
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

@@ -1,0 +1,5 @@
+{
+  "name": "Node.js Microservices Lab",
+  "description": "A simplified e-commerce microservices system using Node.js, TypeScript, RabbitMQ, and Docker for learning purposes.",
+  "requestFramePermissions": []
+}
